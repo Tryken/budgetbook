@@ -1,0 +1,149 @@
+openapi: 3.0.3
+info:
+    title: Budget Book App
+    description: Budget Book App
+    version: '1'
+servers:
+    -   url: 'http://localhost:8080/{basePath}'
+        description: local endpoint
+        variables:
+            basePath:
+                default: v1
+tags:
+    -   name: SignIn
+        description: SignIn related endpoints
+    -   name: Users
+        description: User related endpoints
+paths:
+    /signin:
+        post:
+            summary: Get jwt token
+            tags:
+                - SignIn
+            description: Returns current jwt Token
+            operationId: signin
+            parameters:
+                -   in: formData
+                    name: client_id
+                    type: string
+                    required: true
+                -   name: client_secret
+                    in: formData
+                    type: string
+                    required: true
+            responses:
+                '200':
+                    description: 'Current jwt token'
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/JWTToken'
+                '403':
+                    $ref: '#/components/responses/Forbidden'
+    /users/{userID}:
+        get:
+            summary: Get User Details
+            tags:
+                - Users
+            description: Returns user details
+            operationId: getUser
+            parameters:
+                -   name: userID
+                    in: path
+                    schema:
+                        type: string
+                    required: true
+            responses:
+                '200':
+                    description: 'List of users'
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/UserDetailsList'
+                '404':
+                    $ref: '#/components/responses/ResourceNotFound'
+components:
+    responses:
+        BadRequest:
+            description: Illegal Request
+            content:
+                application/json:
+                    schema:
+                        $ref: '#/components/schemas/ApiError'
+        Forbidden:
+            description: Access Denied
+            content:
+                application/json:
+                    schema:
+                        $ref: '#/components/schemas/ApiError'
+        ResourceNotFound:
+            description: Resource not found
+            content:
+                application/json:
+                    schema:
+                        $ref: '#/components/schemas/ApiError'
+    schemas:
+        ApiError:
+            type: object
+            required:
+                - timestamp
+                - status
+                - error
+                - message
+                - path
+            properties:
+                id:
+                    type: string
+                    format: uuid
+                timestamp:
+                    type: string
+                    format: date-time
+                    example: '2039-07-21T17:32:28Z'
+                status:
+                    type: string
+                    example: "Http Status Code"
+                error:
+                    type: string
+                    example: "Exception"
+                message:
+                    type: string
+                    example: "Error Message"
+                path:
+                    type: string
+                    example: "/path/to/resource"
+        JWTToken:
+            type: object
+            properties:
+                token:
+                    type: string
+                refreshToken:
+                    type: string
+                expirationDate:
+                    type: string
+        UserDetailsList:
+            type: object
+            properties:
+                entryCount:
+                    type: integer
+                pageEntries:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/UserDetails'
+        UserDetails:
+            type: object
+            properties:
+                id:
+                    type: string
+                email:
+                    type: string
+                firstName:
+                    type: string
+                lastName:
+                    type: string
+    securitySchemes:
+        bearerAuth:
+            type: http
+            scheme: bearer
+            bearerFormat: JWT
+security:
+    -   bearerAuth: [ ]
